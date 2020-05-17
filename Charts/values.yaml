@@ -5,6 +5,7 @@
 ---
 clusterName: "elasticsearch"
 nodeGroup: "master"
+namespace: "elastic-system"
 
 # The service that non master groups will try to connect to when joining the cluster
 # This should be set to clusterName + "-" + nodeGroup for your master group
@@ -17,7 +18,39 @@ roles:
   ingest: "true"
   data: "true"
 
-replicas: 3
+
+replicas:
+  elastic:
+    master: 1
+    data: 0
+  kibana: 0
+
+
+test:
+ enabled: false
+
+kibana:
+  enabled: true
+  http:
+    service:
+      spec:
+        type: LoadBalancer
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 500m
+          limits:
+            memory: 1Gi
+            cpu: 500m
+
+  
+elasticsearch:
+  enabled: true
+
 minimumMasterNodes: 2
 
 esMajorVersion: ""
@@ -152,7 +185,7 @@ antiAffinityTopologyKey: "kubernetes.io/hostname"
 
 # Hard means that by default pods will only be scheduled if there are enough nodes for them
 # and that they will never end up on the same node. Setting this to soft will do this "best effort"
-antiAffinity: "hard"
+antiAffinity: "soft"
 
 # This is the node affinity settings as defined in
 # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity-beta-feature
@@ -273,4 +306,4 @@ fsGroup: ""
 serviceAccount:
   enabled: false
 
-Environment: "Dev"
+environment: "Dev"
