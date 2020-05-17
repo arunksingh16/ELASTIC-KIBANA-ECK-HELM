@@ -1,6 +1,6 @@
 # The name of the container in the pod template must be kibana
 # add a custom setting for kibana
-apiVersion: kibana.k8s.elastic.co/v
+apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
 metadata:
   name: kibana-cluster
