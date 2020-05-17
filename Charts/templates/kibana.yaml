@@ -1,0 +1,28 @@
+# The name of the container in the pod template must be kibana
+# add a custom setting for kibana
+apiVersion: kibana.k8s.elastic.co/v
+kind: Kibana
+metadata:
+  name: kibana-cluster
+  namespace: elastic-system
+spec:
+  version: 7.6.2
+  count: 1
+  elasticsearchRef:
+    name: "elasticsearch"
+    namespace: elastic-system
+  http:
+    service:
+      spec:
+        type: LoadBalancer
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 500m
+          limits:
+            memory: 1Gi
+            cpu: 500m

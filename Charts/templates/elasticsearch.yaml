@@ -1,0 +1,166 @@
+# This sample sets up an Elasticsearch cluster with 3 nodes.
+# https://github.com/elastic/cloud-on-k8s/blob/master/config/samples/elasticsearch/elasticsearch.yaml
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+  namespace: elastic-system
+spec:
+  version: 7.6.0
+  nodeSets:
+  - name: master
+    count: 1
+    config:
+      # most Elasticsearch configuration parameters are possible to set, e.g: node.attr.attr_name: attr_value
+      node.master: true
+      node.data: false
+      node.ingest: false
+      node.ml: false
+      # this allows ES to run on nodes even if their vm.max_map_count has not been increased, at a performance cost
+      node.store.allow_mmap: false
+      # this will allow AZ based affinity
+      #node.attr.zone: europe-west3-a
+      #cluster.routing.allocation.awareness.attributes: zone
+    podTemplate:
+      metadata:
+        labels:
+          release: "1.2"
+          chart: "test"
+          env: "Dev"
+        annotations:
+          "my.custom.domain/annotation": "annotation-value"
+      spec:
+        # this changes the kernel setting on the node to allow ES to use mmap
+        # if you uncomment this init container you will likely also want to remove the
+        # "node.store.allow_mmap: false" setting above
+        initContainers:
+        - name: sysctl
+          securityContext:
+            privileged: true
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+      #To avoid scheduling several Elasticsearch nodes from the same cluster on the same host
+      #use a podAntiAffinity rule based on the hostname and the cluster name label
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    elasticsearch.k8s.elastic.co/cluster-name: elasticsearch
+                topologyKey: kubernetes.io/hostname
+          # this is for AZ based affinity
+          #nodeAffinity:
+            #requiredDuringSchedulingIgnoredDuringExecution:
+              #nodeSelectorTerms:
+              #- matchExpressions:
+                #- key: failure-domain.beta.kubernetes.io/zone
+                  #operator: In
+                  #values:
+                  #- europe-west3-a
+        ###
+        # uncomment the line below if you are using a service mesh such as linkerd2 that uses service account tokens for pod identification.
+        # automountServiceAccountToken: true
+        containers:
+        - name: elasticsearch
+          # specify resource limits and requests
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: 500m
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms1g -Xmx1g"
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: default
+  # # inject secure settings into Elasticsearch nodes from k8s secrets references
+  # secureSettings:
+  # - secretName: ref-to-secret
+  # - secretName: another-ref-to-secret
+  #   # expose only a subset of the secret keys (optional)
+  #   entries:
+  #   - key: value1
+  #     path: newkey # project a key to a specific path (optional)
+  # http:
+  #   service:
+  #     spec:
+  #       # expose this cluster Service with a LoadBalancer
+  #       type: LoadBalancer
+  #   tls:
+  #     selfSignedCertificate:
+  #       # add a list of SANs into the self-signed HTTP certificate
+  #       subjectAltNames:
+  #       - ip: 192.168.1.2
+  #       - ip: 192.168.1.3
+  #       - dns: elasticsearch-sample.example.com
+  #     certificate:
+  #       # provide your own certificate
+  #       secretName: my-cert
+  - name: data
+    count: 1
+    config:
+      # most Elasticsearch configuration parameters are possible to set, e.g: node.attr.attr_name: attr_value
+      node.master: false
+      node.data: true
+      node.ingest: true
+      node.ml: false
+      # this allows ES to run on nodes even if their vm.max_map_count has not been increased, at a performance cost
+      node.store.allow_mmap: false
+    podTemplate:
+      metadata:
+        labels:
+          release: "1.2"
+          chart: "test"
+          env: "Dev"
+        annotations:
+          "my.custom.domain/annotation": "annotation-value"
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    elasticsearch.k8s.elastic.co/cluster-name: elasticsearch
+                topologyKey: kubernetes.io/hostname
+        # this changes the kernel setting on the node to allow ES to use mmap
+        # if you uncomment this init container you will likely also want to remove the
+        # "node.store.allow_mmap: false" setting above
+        # initContainers:
+        # - name: sysctl
+        #   securityContext:
+        #     privileged: true
+        #   command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        ###
+        # uncomment the line below if you are using a service mesh such as linkerd2 that uses service account tokens for pod identification.
+        # automountServiceAccountToken: true
+        containers:
+        - name: elasticsearch
+          # specify resource limits and requests
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: 500m
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms1g -Xmx1g"
+  #   # request 2Gi of persistent data storage for pods in this topology element
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: default

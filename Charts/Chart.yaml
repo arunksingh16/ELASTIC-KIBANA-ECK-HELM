@@ -1,0 +1,7 @@
+apiVersion: v2
+name: eck-helm-chart
+description: A Helm chart for Elasticsearch ECK
+
+type: application
+version: 1.0.0
+appVersion: 6.8.6
