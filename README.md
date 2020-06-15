@@ -15,6 +15,6 @@ default settings. All of these settings are configurable.
   * 1GB of RAM for the JVM heap
 
 
-echo "Health:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.health}'`" > test
-echo "Nodes:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.availableNodes}'`" >> test
-echo "Phase:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.phase}'`" >> test
+*echo "Health:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.health}'`" > test
+*echo "Nodes:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.availableNodes}'`" >> test
+*echo "Phase:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.phase}'`" >> test
