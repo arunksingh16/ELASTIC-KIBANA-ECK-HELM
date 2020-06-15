@@ -16,5 +16,7 @@ default settings. All of these settings are configurable.
 
 
 *echo "Health:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.health}'`" > test
+
 *echo "Nodes:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.availableNodes}'`" >> test
+
 *echo "Phase:`kubectl get elasticsearch elasticsearch -n dev -o=jsonpath='{.status.phase}'`" >> test
